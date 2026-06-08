@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'sequencer = archer_sim.sequencer:main',
             'target_detector = archer_sim.target_detector:main',
+            'archer_brain = archer_sim.archer_brain:main',
         ],
     },
 )

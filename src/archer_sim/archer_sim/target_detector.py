@@ -54,9 +54,13 @@ class TargetDetector(Node):
         if ids is None:
             return
 
-        # Use the first detected tag.
-        pts = corners[0][0]
-        center_x = float(pts[:, 0].mean())
+        # With multiple tags, report the one nearest the image center -- that's
+        # the one the bow is closest to aiming at.
+        mid = frame_width / 2.0
+        centers = [float(c[0][:, 0].mean()) for c in corners]
+        best = min(range(len(centers)), key=lambda i: abs(centers[i] - mid))
+        center_x = centers[best]
+        ids = ids.flatten()[best:best + 1]  # keep the matching id for logging
         angle = self.pixel_to_angle(center_x, frame_width)
 
         self.angle_pub.publish(Float64(data=angle))

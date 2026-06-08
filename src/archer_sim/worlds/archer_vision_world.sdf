@@ -141,10 +141,10 @@
         </axis>
       </joint>
 
-      <!-- Camera "eye": fixed to the base (does NOT rotate with the body),
-           mounted up high, looking down +X (the archer's forward). -->
+      <!-- Camera "eye": mounted on the BODY (turret), so it sweeps when the
+           base rotates. Sits in front of and above the torso, looking +X. -->
       <link name="camera_link">
-        <pose>0 0 0.7 0 0 0</pose>
+        <pose>0.15 0 0.65 0 0 0</pose>
         <inertial>
           <mass>0.05</mass>
           <inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
@@ -166,7 +166,7 @@
         </sensor>
       </link>
       <joint name="camera_fix" type="fixed">
-        <parent>base_link</parent>
+        <parent>body</parent>
         <child>camera_link</child>
       </joint>
 
@@ -184,13 +184,14 @@
       </plugin>
     </model>
 
-    <!-- ===================== APRILTAG TARGET (-25 deg) ==================== -->
-    <!-- Placed at azimuth -25 deg, 3.5 m out, at camera height. Yawed so its
-         textured +X face looks straight back at the camera. Moved from +30 to
-         -25 to prove the archer tracks the DETECTED angle, not a hardcoded one. -->
+    <!-- ===================== APRILTAG TARGET (+75 deg) ==================== -->
+    <!-- Placed at azimuth +75 deg, 3.5 m out, at camera height. This is far
+         outside the camera's ~68 deg view from forward, so the archer can only
+         find it by SWEEPING (searching) the base. Yawed so its textured +X face
+         looks back at the camera. -->
     <model name="target">
       <static>true</static>
-      <pose>3.172 -1.479 0.7 0 0 2.7053</pose>
+      <pose>0.906 3.381 0.7 0 0 -1.833</pose>
       <link name="link">
         <visual name="vis">
           <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
