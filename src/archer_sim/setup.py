@@ -22,6 +22,8 @@ setup(
     description='Gazebo simulation of the Skeleton Archer (P2).',
     license='MIT',
     entry_points={
-        'console_scripts': [],
+        'console_scripts': [
+            'sequencer = archer_sim.sequencer:main',
+        ],
     },
 )
