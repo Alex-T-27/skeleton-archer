@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skeleton Archer — Build Plan</title>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --panel:     #161b22;
+    --panel-2:   #1c2330;
+    --bone:      #e8e6d9;
+    --grey:      #8b949e;
+    --green:     #5fd35f;   /* creeper / minecraft green */
+    --green-dim: #3a7d3a;
+    --red:       #e05656;
+    --gold:      #e3b341;
+    --line:      #2d333b;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      linear-gradient(transparent 96%, rgba(95,211,95,0.05) 96%) 0 0 / 100% 28px,
+      var(--bg);
+    color: var(--bone);
+    font-family: "DejaVu Sans Mono", "Courier New", monospace;
+    line-height: 1.6;
+    padding: 0 1.2rem 5rem;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header {
+    padding: 3.5rem 0 2rem;
+    border-bottom: 3px solid var(--green-dim);
+    margin-bottom: 2.5rem;
+  }
+  .eyebrow {
+    color: var(--green);
+    letter-spacing: 3px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+  }
+  h1 {
+    margin: 0;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    text-shadow: 3px 3px 0 #000;
+  }
+  h1 .bow { color: var(--green); }
+  .tagline {
+    color: var(--grey);
+    margin: 1rem 0 0;
+    font-size: 1.02rem;
+    max-width: 60ch;
+  }
+  .meta {
+    margin-top: 1.4rem;
+    font-size: 0.78rem;
+    color: var(--grey);
+  }
+  .meta b { color: var(--bone); }
+
+  h2 {
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+    margin: 2.8rem 0 1rem;
+    padding-left: 0.7rem;
+    border-left: 5px solid var(--green);
+  }
+  h2 .num { color: var(--green-dim); margin-right: 0.5rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    padding: 1rem 1.2rem;
+    margin: 0.8rem 0;
+  }
+  .card.insight { border-left-color: var(--gold); }
+  .card.risk    { border-left-color: var(--red); background: var(--panel-2); }
+  .card h3 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--bone); }
+  .card h3 .tag { color: var(--gold); }
+  .card.risk h3 .tag { color: var(--red); }
+  .card p { margin: 0.3rem 0 0; color: var(--grey); font-size: 0.92rem; }
+  .card p b, .card p strong { color: var(--bone); }
+
+  /* parts grid */
+  .parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 0.8rem; }
+  .part {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 0.9rem 1rem;
+  }
+  .part .n {
+    color: var(--green);
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+  }
+  .part .name { font-weight: bold; margin: 0.2rem 0 0.4rem; }
+  .part .desc { color: var(--grey); font-size: 0.85rem; line-height: 1.5; }
+
+  /* phases */
+  .phase {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 1rem;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 1rem 1.1rem;
+    margin: 0.7rem 0;
+    align-items: start;
+  }
+  .phase .badge {
+    background: var(--panel-2);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    text-align: center;
+    padding: 0.5rem 0;
+    font-weight: bold;
+    font-size: 0.95rem;
+  }
+  .phase.now .badge { background: var(--green); color: #06210a; border-color: var(--green); }
+  .phase .title { font-weight: bold; margin: 0 0 0.25rem; }
+  .phase .body { color: var(--grey); font-size: 0.9rem; }
+  .phase .free {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    color: var(--green);
+    border: 1px solid var(--green-dim);
+    padding: 1px 6px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .phase.now .nowtag {
+    display: inline-block;
+    background: var(--gold);
+    color: #2a2000;
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    padding: 1px 6px;
+    margin-left: 0.5rem;
+    font-weight: bold;
+  }
+
+  ul.clean { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+  ul.clean li { padding-left: 1.3rem; position: relative; color: var(--grey); margin: 0.35rem 0; }
+  ul.clean li::before { content: "▸"; color: var(--green); position: absolute; left: 0; }
+  ul.clean li b { color: var(--bone); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    color: var(--grey);
+    font-size: 0.78rem;
+  }
+  code {
+    background: var(--panel-2);
+    padding: 1px 5px;
+    color: var(--green);
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">▚ Summer 2026 · Robotics Build</p>
+    <h1>SKELETON <span class="bow">ARCHER</span></h1>
+    <p class="tagline">
+      Two robot arms, Minecraft-skeleton style, that find a target anywhere across
+      a 180° arc and loose a single toy arrow at it — on your command.
+    </p>
+    <p class="meta">
+      <b>Scope locked:</b> ONE shot · looks-first (it must <i>read</i> as a skeleton archer) ·
+      close range · toy arrow · printed bullseye on cardboard.
+    </p>
+  </header>
+
+  <!-- WHY IT'S FEASIBLE -->
+  <h2><span class="num">01</span>The tricks that make it doable</h2>
+  <p style="color:var(--grey); margin-top:0;">
+    The naive version eats a whole summer. These four decisions cut out the brutal parts
+    while keeping the look.
+  </p>
+
+  <div class="card insight">
+    <h3><span class="tag">▲</span> Keep the elastic LIGHT</h3>
+    <p>The draw arm pulls the string to tension itself — but hobby servos are weak and
+    overheat holding a static load. Close range + a toy arrow needs barely any force, so a
+    <b>light rubber band</b> is enough. The moment you want a "real" snappy bow, the servo can't do it. Stay light.</p>
+  </div>
+
+  <div class="card insight">
+    <h3><span class="tag">▲</span> One arm holds, one arm draws</h3>
+    <p>A real archer doesn't pull the string with both hands. <b>Bow arm holds steady, draw
+    arm pulls + releases.</b> Only one release point — which kills the dual-arm
+    sync nightmare (two grippers letting go at the exact same millisecond). Also looks more like an archer.</p>
+  </div>
+
+  <div class="card insight">
+    <h3><span class="tag">▲</span> A rotating base does the aiming</h3>
+    <p>Instead of re-solving arm angles for every target position, put the whole archer on a
+    <b>turntable</b>. The base swivels the body to face the target; the arms always perform the
+    <i>same</i> fixed draw motion. Aiming and arm-coordination stay separate problems.</p>
+  </div>
+
+  <div class="card insight">
+    <h3><span class="tag">▲</span> Pretty target ≠ what the camera sees</h3>
+    <p>Detecting a colored bullseye reliably is finicky (ovals at an angle, lighting, scale).
+    So: print the nice bullseye for the <b>look</b>, and stick a small <b>AprilTag</b> on it — a
+    chunky black-and-white square the camera locks onto instantly for rock-solid position + angle.</p>
+  </div>
+
+  <!-- THE PARTS -->
+  <h2><span class="num">02</span>The five parts</h2>
+  <div class="parts">
+    <div class="part"><div class="n">PART 01</div><div class="name">Launcher</div>
+      <div class="desc">Light elastic "bow", a toy arrow, and a clean release.</div></div>
+    <div class="part"><div class="n">PART 02</div><div class="name">Two arms</div>
+      <div class="desc">Bow arm holds steady · draw arm pulls &amp; releases.</div></div>
+    <div class="part"><div class="n">PART 03</div><div class="name">Aiming base</div>
+      <div class="desc">Turntable swivels the body to face the target.</div></div>
+    <div class="part"><div class="n">PART 04</div><div class="name">Vision brain</div>
+      <div class="desc">Webcam + AprilTag → the target's angle. Your wheelhouse.</div></div>
+    <div class="part"><div class="n">PART 05</div><div class="name">Sequencer</div>
+      <div class="desc">ROS 2 ties it: detect → aim → draw → hold → <i>shoot</i> → release.</div></div>
+  </div>
+
+  <!-- BUILD ORDER -->
+  <h2><span class="num">03</span>Build order</h2>
+  <p style="color:var(--grey); margin-top:0;">
+    Do the cheap, <b style="color:var(--green)">arm-free</b> stuff first so you're never blocked waiting on hardware.
+  </p>
+
+  <div class="phase">
+    <div class="badge">P0</div>
+    <div>
+      <p class="title">Prove the launch by hand <span class="free">NO ARM</span></p>
+      <p class="body">Rubber band, a dowel, something arrow-shaped, your hand as the release.
+      Does a light projectile fly roughly straight at a board? That's the whole physics risk in one cheap test.
+      <i>(On hold — no rubber band right now.)</i></p>
+    </div>
+  </div>
+
+  <div class="phase now">
+    <div class="badge">P1</div>
+    <div>
+      <p class="title">Vision → target angle <span class="nowtag">NEXT</span></p>
+      <p class="body">Webcam points at a printed AprilTag; a script detects it and outputs
+      <b>where it is</b> (left/center/right, then an actual angle). Pure software, zero hardware.
+      New skill to learn: AprilTag detection + turning a detection into an aim angle.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="badge">P2</div>
+    <div>
+      <p class="title">Full sequence in simulation <span class="free">NO ARM</span></p>
+      <p class="body">Model the archer in sim (Pokie / Isaac) and get the whole
+      detect → aim → draw → release sequence working virtually before any real arm exists.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="badge">P3</div>
+    <div>
+      <p class="title">Real arms (friend lends a hand)</p>
+      <p class="body">Print + wire two arms (SO-ARM100 style: 3D-printed frame + servos). Then, in order:
+      one arm draws &amp; releases the real elastic → add the bow arm → add the rotating base.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="badge">P4</div>
+    <div>
+      <p class="title">Integrate + dress it up</p>
+      <p class="body">Wire the vision aim into the real base, then add the skeleton styling so it
+      finally <i>looks</i> like a Minecraft archer. Tune until it lands ~8 of 10 practice tries.</p>
+    </div>
+  </div>
+
+  <!-- RISK -->
+  <h2><span class="num">04</span>The one risk to manage</h2>
+  <div class="card risk">
+    <h3><span class="tag">■</span> The arms are the long pole</h3>
+    <p>If the whole project can't move until two physical arms exist and work — and your friend
+    gets busy — your summer stalls. <b>The fix is the build order above:</b> the vision brain (P1)
+    and the full sequence (P2) get built and tested in simulation <i>while</i> the arms are being made.
+    You're never idle waiting on someone else.</p>
+  </div>
+
+  <!-- NEXT -->
+  <h2><span class="num">05</span>Next 30 minutes</h2>
+  <ul class="clean">
+    <li>Pull up an <b>AprilTag</b> on your phone (search <code>apriltag tag36h11</code>) as a stand-in target.</li>
+    <li>Get a script running: <b>webcam → detect the tag → print where it is.</b></li>
+    <li>The interesting part to crack yourself: <b>detection → aim angle</b>.</li>
+    <li>Ask Claude for a <b>skeleton script</b> — boilerplate filled, angle-math left as a TODO.</li>
+  </ul>
+
+  <footer>
+    <p>Saved to <code>~/cs/projects/skeleton-archer/plan.html</code> · drafted 2026-05-31.<br>
+    This is the <i>plan</i>. The plan isn't the project — P0/P1 are. Don't let writing this count as the work.</p>
+  </footer>
+
+</div>
+</body>
+</html>
