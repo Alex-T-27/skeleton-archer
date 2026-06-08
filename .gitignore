@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# colcon build artifacts
+/build/
+/install/
+/log/

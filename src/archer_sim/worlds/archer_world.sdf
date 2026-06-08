@@ -1,0 +1,170 @@
+<?xml version="1.0" ?>
+<!--
+  P2.1 world for the Skeleton Archer.
+  A ground + sun + a minimal archer with two moving joints:
+    base_joint  (revolute, vertical axis)  = aiming swivel
+    draw_joint  (prismatic, horizontal)    = draw arm pulling the string
+  Each joint is driven by a JointPositionController listening on a Gazebo topic,
+  which the ROS 2 bridge (see launch file) maps to /archer/base_cmd and
+  /archer/draw_cmd.  Styling is intentionally crude boxes/cylinders (P4 dresses it up).
+-->
+<sdf version="1.10">
+  <world name="archer_world">
+
+    <!-- Core systems every Gz world needs -->
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Ground plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.4 0.4 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============================ THE ARCHER ============================ -->
+    <model name="archer">
+      <pose>0 0 0 0 0 0</pose>
+
+      <!-- Weld the base to the world so the robot doesn't fall over/slide -->
+      <joint name="world_fix" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+
+      <!-- Turntable housing (fixed) -->
+      <link name="base_link">
+        <pose>0 0 0.05 0 0 0</pose>
+        <inertial>
+          <mass>5.0</mass>
+          <inertia><ixx>0.04</ixx><iyy>0.04</iyy><izz>0.06</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><cylinder><radius>0.15</radius><length>0.1</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.15</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.2 0.2 0.25 1</ambient><diffuse>0.3 0.3 0.35 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- Body/torso: rides on the turntable, yaws to aim -->
+      <link name="body">
+        <pose>0 0 0.4 0 0 0</pose>
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.02</ixx><iyy>0.02</iyy><izz>0.004</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.12 0.12 0.5</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.12 0.12 0.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.8 1</ambient><diffuse>0.9 0.9 0.85 1</diffuse></material>
+        </visual>
+      </link>
+
+      <joint name="base_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit><lower>-1.57</lower><upper>1.57</upper></limit>
+          <dynamics><damping>0.5</damping></dynamics>
+        </axis>
+      </joint>
+
+      <!-- Bow arm: fixed to the body, just holds steady (no joint motion) -->
+      <link name="bow_arm">
+        <pose>0.2 0.12 0.5 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia><ixx>0.001</ixx><iyy>0.003</iyy><izz>0.003</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.3 0.04 0.04</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.3 0.04 0.04</size></box></geometry>
+          <material><ambient>0.85 0.85 0.8 1</ambient><diffuse>0.9 0.9 0.85 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="bow_fix" type="fixed">
+        <parent>body</parent>
+        <child>bow_arm</child>
+      </joint>
+
+      <!-- Draw hand: slides backward/forward = drawing the string -->
+      <link name="draw_hand">
+        <pose>0.05 -0.12 0.5 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia><ixx>0.0002</ixx><iyy>0.0002</iyy><izz>0.0002</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.08 0.08 0.08</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.08 0.08 0.08</size></box></geometry>
+          <material><ambient>0.7 0.5 0.3 1</ambient><diffuse>0.8 0.6 0.4 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="draw_joint" type="prismatic">
+        <parent>body</parent>
+        <child>draw_hand</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit><lower>-0.2</lower><upper>0.0</upper></limit>
+          <dynamics><damping>5.0</damping></dynamics>
+        </axis>
+      </joint>
+
+      <!-- Position controllers: each listens on a Gz topic for a target value -->
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>base_joint</joint_name>
+        <topic>/archer/base_cmd</topic>
+        <p_gain>30</p_gain>
+        <i_gain>0.1</i_gain>
+        <d_gain>3</d_gain>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>draw_joint</joint_name>
+        <topic>/archer/draw_cmd</topic>
+        <p_gain>80</p_gain>
+        <i_gain>0.1</i_gain>
+        <d_gain>8</d_gain>
+      </plugin>
+
+    </model>
+    <!-- =================================================================== -->
+
+  </world>
+</sdf>
