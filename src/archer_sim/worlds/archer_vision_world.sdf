@@ -1,0 +1,214 @@
+<?xml version="1.0" ?>
+<!--
+  P2.3 world: the P2.1 archer + a fixed camera "eye" + an AprilTag target.
+  The camera publishes images (gz topic /archer/camera); the ROS target_detector
+  node runs P1-style detection on them and publishes the aim angle, closing the
+  detect -> aim -> release loop.
+
+  NOTE: the archer model here is duplicated from archer_world.sdf. If the model
+  changes, update both (or factor into a shared model:// include later).
+-->
+<sdf version="1.10">
+  <world name="archer_vision_world">
+
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+    <!-- Needed to actually render the camera sensor -->
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+      <!-- ogre2 renders a blank gradient off-screen on this RTX 5070 / driver
+           595; the legacy ogre engine is the standard fallback. -->
+      <render_engine>ogre</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.4 0.4 0.4 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============================ THE ARCHER ============================ -->
+    <model name="archer">
+      <pose>0 0 0 0 0 0</pose>
+
+      <joint name="world_fix" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+
+      <link name="base_link">
+        <pose>0 0 0.05 0 0 0</pose>
+        <inertial>
+          <mass>5.0</mass>
+          <inertia><ixx>0.04</ixx><iyy>0.04</iyy><izz>0.06</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><cylinder><radius>0.15</radius><length>0.1</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.15</radius><length>0.1</length></cylinder></geometry>
+          <material><ambient>0.2 0.2 0.25 1</ambient><diffuse>0.3 0.3 0.35 1</diffuse></material>
+        </visual>
+      </link>
+
+      <link name="body">
+        <pose>0 0 0.4 0 0 0</pose>
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.02</ixx><iyy>0.02</iyy><izz>0.004</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.12 0.12 0.5</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.12 0.12 0.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.8 1</ambient><diffuse>0.9 0.9 0.85 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="base_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>body</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit><lower>-1.57</lower><upper>1.57</upper></limit>
+          <dynamics><damping>0.5</damping></dynamics>
+        </axis>
+      </joint>
+
+      <link name="bow_arm">
+        <pose>0.2 0.12 0.5 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia><ixx>0.001</ixx><iyy>0.003</iyy><izz>0.003</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.3 0.04 0.04</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.3 0.04 0.04</size></box></geometry>
+          <material><ambient>0.85 0.85 0.8 1</ambient><diffuse>0.9 0.9 0.85 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="bow_fix" type="fixed">
+        <parent>body</parent>
+        <child>bow_arm</child>
+      </joint>
+
+      <link name="draw_hand">
+        <pose>0.05 -0.12 0.5 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia><ixx>0.0002</ixx><iyy>0.0002</iyy><izz>0.0002</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="col">
+          <geometry><box><size>0.08 0.08 0.08</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.08 0.08 0.08</size></box></geometry>
+          <material><ambient>0.7 0.5 0.3 1</ambient><diffuse>0.8 0.6 0.4 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="draw_joint" type="prismatic">
+        <parent>body</parent>
+        <child>draw_hand</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit><lower>-0.2</lower><upper>0.0</upper></limit>
+          <dynamics><damping>5.0</damping></dynamics>
+        </axis>
+      </joint>
+
+      <!-- Camera "eye": fixed to the base (does NOT rotate with the body),
+           mounted up high, looking down +X (the archer's forward). -->
+      <link name="camera_link">
+        <pose>0 0 0.7 0 0 0</pose>
+        <inertial>
+          <mass>0.05</mass>
+          <inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <visual name="vis">
+          <geometry><box><size>0.05 0.08 0.04</size></box></geometry>
+          <material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
+        </visual>
+        <sensor name="eye" type="camera">
+          <topic>/archer/camera</topic>
+          <update_rate>15</update_rate>
+          <always_on>1</always_on>
+          <camera>
+            <horizontal_fov>1.2</horizontal_fov>
+            <image><width>640</width><height>480</height></image>
+            <clip><near>0.05</near><far>100</far></clip>
+          </camera>
+        </sensor>
+      </link>
+      <joint name="camera_fix" type="fixed">
+        <parent>base_link</parent>
+        <child>camera_link</child>
+      </joint>
+
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>base_joint</joint_name>
+        <topic>/archer/base_cmd</topic>
+        <p_gain>30</p_gain><i_gain>0.1</i_gain><d_gain>3</d_gain>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>draw_joint</joint_name>
+        <topic>/archer/draw_cmd</topic>
+        <p_gain>80</p_gain><i_gain>0.1</i_gain><d_gain>8</d_gain>
+      </plugin>
+    </model>
+
+    <!-- ===================== APRILTAG TARGET (-25 deg) ==================== -->
+    <!-- Placed at azimuth -25 deg, 3.5 m out, at camera height. Yawed so its
+         textured +X face looks straight back at the camera. Moved from +30 to
+         -25 to prove the archer tracks the DETECTED angle, not a hardcoded one. -->
+    <model name="target">
+      <static>true</static>
+      <pose>3.172 -1.479 0.7 0 0 2.7053</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>apriltag_36h11_id0.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>1.0</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!-- =================================================================== -->
+
+  </world>
+</sdf>

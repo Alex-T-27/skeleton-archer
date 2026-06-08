@@ -1,0 +1,92 @@
+"""
+P2.3 target_detector — the archer's eye, in sim.
+
+Subscribes to the simulated camera (/archer/camera), runs the same AprilTag
+detection as the P1 webcam script, converts the tag's pixel position into an
+aim angle (degrees), and publishes it to /archer/target_angle for the sequencer.
+
+Because this is a simulated camera we KNOW its field of view exactly
+(camera_hfov_deg matches the SDF), so the angle is accurate, not a guess.
+
+Run (with archer_vision.launch.py already up):
+    ros2 run archer_sim target_detector
+Watch what it sees:
+    ros2 topic echo /archer/target_angle
+"""
+
+import math
+
+import cv2
+import rclpy
+from cv_bridge import CvBridge
+from rclpy.node import Node
+from sensor_msgs.msg import Image
+from std_msgs.msg import Float64
+
+
+class TargetDetector(Node):
+    def __init__(self):
+        super().__init__('target_detector')
+
+        # Must match <horizontal_fov> in the SDF camera (1.2 rad = 68.75 deg).
+        self.declare_parameter('camera_hfov_deg', 68.75)
+        # Flip if the archer aims the WRONG way (camera frame handedness).
+        self.declare_parameter('angle_sign', -1.0)
+
+        self.bridge = CvBridge()
+        self.aruco_dict = cv2.aruco.getPredefinedDictionary(
+            cv2.aruco.DICT_APRILTAG_36h11)
+        self.aruco_params = cv2.aruco.DetectorParameters_create()
+
+        self.angle_pub = self.create_publisher(Float64, '/archer/target_angle', 10)
+        self.create_subscription(Image, '/archer/camera', self.on_image, 10)
+
+        self._last_log = -1.0
+        self.get_logger().info('Target detector ready. Watching /archer/camera.')
+
+    def on_image(self, msg: Image):
+        frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        frame_width = frame.shape[1]
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        corners, ids, _ = cv2.aruco.detectMarkers(
+            gray, self.aruco_dict, parameters=self.aruco_params)
+        if ids is None:
+            return
+
+        # Use the first detected tag.
+        pts = corners[0][0]
+        center_x = float(pts[:, 0].mean())
+        angle = self.pixel_to_angle(center_x, frame_width)
+
+        self.angle_pub.publish(Float64(data=angle))
+
+        # Log at most ~once/sec so we don't flood the terminal.
+        now = self.get_clock().now().nanoseconds * 1e-9
+        if now - self._last_log > 1.0:
+            self.get_logger().info(
+                f'tag id={int(ids.flatten()[0])}  angle={angle:+.1f} deg')
+            self._last_log = now
+
+    def pixel_to_angle(self, center_x: float, frame_width: int) -> float:
+        hfov = self.get_parameter('camera_hfov_deg').value
+        sign = self.get_parameter('angle_sign').value
+        half_width = frame_width / 2.0
+        offset_fraction = (center_x - half_width) / half_width   # -1..+1
+        return sign * offset_fraction * (hfov / 2.0)
+
+
+def main():
+    rclpy.init()
+    node = TargetDetector()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

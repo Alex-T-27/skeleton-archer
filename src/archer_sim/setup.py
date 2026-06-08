@@ -14,6 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'worlds'), glob('worlds/*.sdf')),
+        (os.path.join('share', package_name, 'worlds'), glob('worlds/*.png')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'sequencer = archer_sim.sequencer:main',
+            'target_detector = archer_sim.target_detector:main',
         ],
     },
 )
