@@ -49,6 +49,7 @@ def generate_launch_description():
             '/archer/base_cmd@std_msgs/msg/Float64]gz.msgs.Double',
             '/archer/draw_cmd@std_msgs/msg/Float64]gz.msgs.Double',
             '/mover/slide_cmd@std_msgs/msg/Float64]gz.msgs.Double',
+            '/world/archer_vision_world/wrench@ros_gz_interfaces/msg/EntityWrench]gz.msgs.EntityWrench',
         ],
         output='screen',
     )
@@ -73,5 +74,12 @@ def generate_launch_description():
         output='screen',
     )
 
+    launcher = Node(
+        package='archer_sim',
+        executable='arrow_launcher',
+        output='screen',
+    )
+
     return LaunchDescription(
-        [force_nvidia_egl, gz_sim, joint_bridge, image_bridge, detector, mover])
+        [force_nvidia_egl, gz_sim, joint_bridge, image_bridge, detector, mover,
+         launcher])

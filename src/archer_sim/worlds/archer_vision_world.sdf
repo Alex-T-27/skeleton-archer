@@ -11,8 +11,15 @@
 <sdf version="1.10">
   <world name="archer_vision_world">
 
+    <physics name="default" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
     <plugin filename="gz-sim-physics-system"
             name="gz::sim::systems::Physics"/>
+    <!-- Lets the arrow_launcher node apply a one-shot impulse to launch the arrow -->
+    <plugin filename="gz-sim-apply-link-wrench-system"
+            name="gz::sim::systems::ApplyLinkWrench"/>
     <plugin filename="gz-sim-user-commands-system"
             name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system"
@@ -193,6 +200,9 @@
       <static>true</static>
       <pose>0.906 3.381 0.7 0 0 -1.833</pose>
       <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+        </collision>
         <visual name="vis">
           <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
           <material>
@@ -215,6 +225,9 @@
       <static>true</static>
       <pose>3.447 0.608 0.7 0 0 3.3161</pose>
       <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+        </collision>
         <visual name="vis">
           <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
           <material>
@@ -235,6 +248,9 @@
       <static>true</static>
       <pose>2.250 -2.681 0.7 0 0 2.269</pose>
       <link name="link">
+        <collision name="col">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+        </collision>
         <visual name="vis">
           <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
           <material>
@@ -261,6 +277,9 @@
           <inertia><ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
                    <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
         </inertial>
+        <collision name="col">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+        </collision>
         <visual name="vis">
           <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
           <material>
@@ -291,6 +310,29 @@
       </plugin>
     </model>
     <!-- =================================================================== -->
+
+    <!-- The arrow: a free rigid body. The arrow_launcher node teleports it to
+         the bow on release and applies a one-shot impulse along the aim; Gazebo
+         physics flies it and collides it with the targets. Shaft lies along +X. -->
+    <model name="arrow">
+      <pose>0.3 0 0.6 0 0 0</pose>
+      <link name="shaft">
+        <inertial>
+          <mass>0.02</mass>
+          <inertia><ixx>1e-6</ixx><iyy>2.7e-4</iyy><izz>2.7e-4</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <collision name="c">
+          <pose>0 0 0 0 1.5708 0</pose>
+          <geometry><cylinder><radius>0.01</radius><length>0.4</length></cylinder></geometry>
+        </collision>
+        <visual name="v">
+          <pose>0 0 0 0 1.5708 0</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.4</length></cylinder></geometry>
+          <material><ambient>0.6 0.3 0.1 1</ambient><diffuse>0.8 0.45 0.15 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
 
   </world>
 </sdf>

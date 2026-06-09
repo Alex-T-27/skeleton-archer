@@ -28,6 +28,7 @@ setup(
             'target_detector = archer_sim.target_detector:main',
             'archer_brain = archer_sim.archer_brain:main',
             'target_mover = archer_sim.target_mover:main',
+            'arrow_launcher = archer_sim.arrow_launcher:main',
         ],
     },
 )

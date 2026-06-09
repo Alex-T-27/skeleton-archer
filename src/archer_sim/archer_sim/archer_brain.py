@@ -41,6 +41,8 @@ class ArcherBrain(Node):
 
         self.base_pub = self.create_publisher(Float64, '/archer/base_cmd', 10)
         self.draw_pub = self.create_publisher(Float64, '/archer/draw_cmd', 10)
+        # aim azimuth (rad) emitted at release, for the arrow_launcher
+        self.fire_pub = self.create_publisher(Float64, '/archer/fire', 10)
         self.create_subscription(
             Float64MultiArray, '/archer/target', self.on_target, 10)
 
@@ -136,6 +138,7 @@ class ArcherBrain(Node):
             self._send(self.draw_pub, self._p('draw_distance'))
         elif state == 'RELEASE':
             self._send(self.draw_pub, 0.0)
+            self._send(self.fire_pub, self.base_cmd)  # launch arrow along the aim
         elif state == 'SWEEP':
             self.locked_id = None
             self.get_logger().info('Resuming sweep.')
