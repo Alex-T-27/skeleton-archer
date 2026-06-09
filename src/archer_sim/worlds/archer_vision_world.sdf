@@ -249,6 +249,47 @@
         </visual>
       </link>
     </model>
+
+    <!-- Moving target: tag id3 on a prismatic joint that slides along Y.
+         Driven by the target_mover node via /mover/slide_cmd so it oscillates
+         side to side; the archer must re-acquire it each sweep. -->
+    <model name="mover_target">
+      <pose>3.0 0 0.7 0 0 3.14159</pose>
+      <link name="panel">
+        <inertial>
+          <mass>0.3</mass>
+          <inertia><ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+                   <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+        </inertial>
+        <visual name="vis">
+          <geometry><box><size>0.04 0.5 0.5</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <pbr><metal>
+              <albedo_map>apriltag_36h11_id3.png</albedo_map>
+              <metalness>0.0</metalness>
+              <roughness>1.0</roughness>
+            </metal></pbr>
+          </material>
+        </visual>
+      </link>
+      <joint name="slide" type="prismatic">
+        <parent>world</parent>
+        <child>panel</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit><lower>-2.0</lower><upper>2.0</upper></limit>
+          <dynamics><damping>10.0</damping></dynamics>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>slide</joint_name>
+        <topic>/mover/slide_cmd</topic>
+        <p_gain>100</p_gain><i_gain>0.1</i_gain><d_gain>20</d_gain>
+      </plugin>
+    </model>
     <!-- =================================================================== -->
 
   </world>

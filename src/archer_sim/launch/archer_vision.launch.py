@@ -48,6 +48,7 @@ def generate_launch_description():
         arguments=[
             '/archer/base_cmd@std_msgs/msg/Float64]gz.msgs.Double',
             '/archer/draw_cmd@std_msgs/msg/Float64]gz.msgs.Double',
+            '/mover/slide_cmd@std_msgs/msg/Float64]gz.msgs.Double',
         ],
         output='screen',
     )
@@ -66,5 +67,11 @@ def generate_launch_description():
         output='screen',
     )
 
+    mover = Node(
+        package='archer_sim',
+        executable='target_mover',
+        output='screen',
+    )
+
     return LaunchDescription(
-        [force_nvidia_egl, gz_sim, joint_bridge, image_bridge, detector])
+        [force_nvidia_egl, gz_sim, joint_bridge, image_bridge, detector, mover])

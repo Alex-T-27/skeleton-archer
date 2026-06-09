@@ -27,6 +27,7 @@ setup(
             'sequencer = archer_sim.sequencer:main',
             'target_detector = archer_sim.target_detector:main',
             'archer_brain = archer_sim.archer_brain:main',
+            'target_mover = archer_sim.target_mover:main',
         ],
     },
 )
