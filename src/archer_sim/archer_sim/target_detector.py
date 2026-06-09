@@ -21,7 +21,7 @@ import rclpy
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Float64MultiArray
 
 
 class TargetDetector(Node):
@@ -39,6 +39,9 @@ class TargetDetector(Node):
         self.aruco_params = cv2.aruco.DetectorParameters_create()
 
         self.angle_pub = self.create_publisher(Float64, '/archer/target_angle', 10)
+        # [id, bearing] of the nearest-center tag, for the brain to lock onto
+        self.target_pub = self.create_publisher(
+            Float64MultiArray, '/archer/target', 10)
         self.create_subscription(Image, '/archer/camera', self.on_image, 10)
 
         self._last_log = -1.0
@@ -57,19 +60,21 @@ class TargetDetector(Node):
         # With multiple tags, report the one nearest the image center -- that's
         # the one the bow is closest to aiming at.
         mid = frame_width / 2.0
+        ids = ids.flatten()
         centers = [float(c[0][:, 0].mean()) for c in corners]
         best = min(range(len(centers)), key=lambda i: abs(centers[i] - mid))
         center_x = centers[best]
-        ids = ids.flatten()[best:best + 1]  # keep the matching id for logging
+        tag_id = int(ids[best])
         angle = self.pixel_to_angle(center_x, frame_width)
 
+        # bearing alone (manual/sequencer) + [id, bearing] (for the brain to lock)
         self.angle_pub.publish(Float64(data=angle))
+        self.target_pub.publish(Float64MultiArray(data=[float(tag_id), angle]))
 
         # Log at most ~once/sec so we don't flood the terminal.
         now = self.get_clock().now().nanoseconds * 1e-9
         if now - self._last_log > 1.0:
-            self.get_logger().info(
-                f'tag id={int(ids.flatten()[0])}  angle={angle:+.1f} deg')
+            self.get_logger().info(f'tag id={tag_id}  angle={angle:+.1f} deg')
             self._last_log = now
 
     def pixel_to_angle(self, center_x: float, frame_width: int) -> float:
