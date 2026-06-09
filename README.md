@@ -1,7 +1,7 @@
 # Skeleton Archer
 
 > Two robot arms, Minecraft-skeleton style, that find a target anywhere across a
-> **180° arc** and loose a single toy arrow at it — on command.
+> **180° arc** and loose a single toy arrow at it, on command.
 
 ![Skeleton Archer simulation: autonomous 180° sweep, lock, and fire across multiple AprilTag targets in Gazebo](demo.gif)
 
@@ -30,26 +30,26 @@ feasibility tricks the project hinges on.
 | **P3** | Real arms + servos (SO-ARM100 style) | ⬜ hardware |
 | **P4** | Integrate + skeleton styling | ⬜ |
 
-Everything through P2.3 runs in pure software — no hardware required.
+Everything through P2.3 runs in pure software. No hardware required.
 
 ---
 
 ## How it works (the five parts)
 
-1. **Launcher** — light elastic "bow", a toy arrow, a clean release.
-2. **Two arms** — one holds the bow steady, one draws & releases (single release point).
-3. **Aiming base** — a turntable swivels the body to face the target, so the arms
+1. **Launcher:** light elastic "bow", a toy arrow, a clean release.
+2. **Two arms:** one holds the bow steady, one draws & releases (single release point).
+3. **Aiming base:** a turntable swivels the body to face the target, so the arms
    always perform the same fixed draw motion.
-4. **Vision brain** — camera + AprilTag → the target's bearing.
-5. **Sequencer** — ROS 2 ties it together: detect → aim → draw → hold → shoot → recover.
+4. **Vision brain:** camera + AprilTag → the target's bearing.
+5. **Sequencer:** ROS 2 ties it together: detect → aim → draw → hold → shoot → recover.
 
 ---
 
 ## Running it
 
-### P1 — webcam vision (standalone)
+### P1: webcam vision (standalone)
 
-Needs Python 3 + OpenCV (with the `aruco` module — bundled in `opencv-python`).
+Needs Python 3 + OpenCV (with the `aruco` module, bundled in `opencv-python`).
 
 ```bash
 python3 p1_vision_aim.py
@@ -58,7 +58,7 @@ python3 p1_vision_aim.py
 Point your webcam at a `tag36h11` AprilTag (search "apriltag 36h11 generator").
 It outlines the tag and prints how many degrees left/right of center it sits.
 
-### P2 — Gazebo simulation
+### P2: Gazebo simulation
 
 Needs **ROS 2 Jazzy**, **Gazebo Sim 8 (Harmonic)**, and the `ros_gz` packages.
 Build the workspace once:
@@ -69,7 +69,7 @@ colcon build
 source install/setup.bash
 ```
 
-**Manual control (P2.1 / P2.2)** — drive the archer, or trigger a shot by angle:
+**Manual control (P2.1 / P2.2).** Drive the archer, or trigger a shot by angle:
 
 ```bash
 ros2 launch archer_sim archer_sim.launch.py
@@ -79,7 +79,7 @@ ros2 run archer_sim sequencer                                                  #
 ros2 topic pub --once /archer/target_angle std_msgs/msg/Float64 "{data: 30}"   # full shot
 ```
 
-**Autonomous 180° targeting (P2.3)** — the archer finds and engages a tag on its own:
+**Autonomous 180° targeting (P2.3).** The archer finds and engages a tag on its own:
 
 ```bash
 ros2 launch archer_sim archer_vision.launch.py   # sim + camera + detector
@@ -91,7 +91,7 @@ center of view (bow aligned) it fires, then resumes sweeping. Moving targets and
 multiple tags are handled for free.
 
 > **Heads up:** `ros2 run` nodes keep running in the background. Before a fresh
-> test, stop old ones (`pkill -f archer_brain`) — otherwise two nodes fight over
+> test, stop old ones (`pkill -f archer_brain`), otherwise two nodes fight over
 > the joints. Sanity check: `ros2 topic info /archer/base_cmd` should show
 > publisher count `1`.
 
@@ -99,9 +99,9 @@ multiple tags are handled for free.
 
 ## Stack
 
-- **ROS 2 Jazzy** — nodes, topics, launch
-- **Gazebo Sim 8 (Harmonic)** + `ros_gz` — physics + the ROS↔Gz bridge
-- **OpenCV** (`aruco`) — AprilTag detection
+- **ROS 2 Jazzy:** nodes, topics, launch
+- **Gazebo Sim 8 (Harmonic)** + `ros_gz`: physics + the ROS↔Gz bridge
+- **OpenCV** (`aruco`): AprilTag detection
 - **Python**
 
 ## Layout
@@ -123,4 +123,4 @@ src/archer_sim/
 - **Gazebo camera renders a blank grey gradient** (seen on RTX 50-series / recent
   NVIDIA drivers): `ogre2` fails to render the sensor off-screen. The vision world
   uses the legacy `ogre` engine and the launch pins EGL to the NVIDIA vendor
-  (`__EGL_VENDOR_LIBRARY_FILENAMES`) — both are needed.
+  (`__EGL_VENDOR_LIBRARY_FILENAMES`). Both are needed.
