@@ -3,6 +3,8 @@
 > Two robot arms, Minecraft-skeleton style, that find a target anywhere across a
 > **180° arc** and loose a single toy arrow at it — on command.
 
+![Skeleton Archer simulation: autonomous 180° sweep, lock, and fire across multiple AprilTag targets in Gazebo](demo.gif)
+
 A summer robotics build: a dual-arm archer on a rotating base that uses a camera
 + AprilTags to spot a target, swivels to aim, draws, and shoots. The "brain" runs
 in **ROS 2**, so the logic proven in simulation carries straight over to the real
